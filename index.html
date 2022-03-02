@@ -37,11 +37,12 @@
   fetch(userTask_url).then(res=>res.text()).then(req=>{
   /*
     console.log(req);
-    const data = JSON.parse(req.substr(47).slice(0,-2));
     data.table.cols.forEach((heading) => {
       console.log(heading);
     });
   */
+
+  const data = JSON.parse(req.substr(47).slice(0,-2));
     data.table.rows.forEach((row) => {
       console.log(row);
       var childTask = { taskId: row.c[0].v
