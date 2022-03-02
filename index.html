@@ -153,12 +153,10 @@
   //var usersDB_url = "https://docs.google.com/spreadsheets/d/1yOLoSGZuLpXAkhIlzaGlsZUelDyvq6kvpRAs2qrLFQc/edit?usp=sharing";
   var usersDB_url = "https://docs.google.com/spreadsheets/d/1yOLoSGZuLpXAkhIlzaGlsZUelDyvq6kvpRAs2qrLFQc/gviz/tq";
   $.ajax({
-      headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      type: "POST", /* or type:"GET" or type:"PUT" */
+      type: 'GET',
       url: usersDB_url,
       dataType: 'json', // use json only, not jsonp
+      crossDomain: true, // tell browser to allow cross domain.
       success: function(data){
         console.log(data);
       }
