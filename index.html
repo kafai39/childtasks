@@ -13,19 +13,59 @@
   //var usersDB_url = "https://docs.google.com/spreadsheets/d/1yOLoSGZuLpXAkhIlzaGlsZUelDyvq6kvpRAs2qrLFQc/edit?usp=sharing";
   var usersDB_url = "https://docs.google.com/spreadsheets/d/1yOLoSGZuLpXAkhIlzaGlsZUelDyvq6kvpRAs2qrLFQc/gviz/tq";
   var userRows = [];
+  var userTask_url = "https://docs.google.com/spreadsheets/d/1yOLoSGZuLpXAkhIlzaGlsZUelDyvq6kvpRAs2qrLFQc/gviz/tq";
+  var childTasks = [];
   fetch(usersDB_url).then(res=>res.text()).then(req=>{
+  /*
     console.log(req);
     const data = JSON.parse(req.substr(47).slice(0,-2));
     data.table.cols.forEach((heading) => {
       console.log(heading);
     });
-
+  */
     data.table.rows.forEach((row) => {
       console.log(row);
       var userRow = { userId: row.c[0].v
                       ,userName: row.c[1].v
-                      ,userImageUrl: row.c[2].v };
+                      ,userImageUrl: row.c[2].v
+                    ,userType: row.c[3].v };
       userRows.push(userRow);
+    });
+  });
+
+
+  fetch(userTask_url).then(res=>res.text()).then(req=>{
+  /*
+    console.log(req);
+    const data = JSON.parse(req.substr(47).slice(0,-2));
+    data.table.cols.forEach((heading) => {
+      console.log(heading);
+    });
+  */
+    data.table.rows.forEach((row) => {
+      console.log(row);
+      var childTask = { taskId: row.c[0].v
+                      ,taskName: row.c[1].v
+                      ,score: row.c[2].v
+                    ,markType: row.c[3].v };
+                    childTasks.push(childTask);
+    });
+    var i=0;
+    $(childTasks).each(function(){
+      if (i>0){
+        var taskHtml = `<label class="todo">
+                      <input class="todo__state" value="`+this.taskId+`" data-score="`+this.score+`" type="checkbox" />
+                       <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
+                        <use xlink:href="#todo__line" class="todo__line"></use>
+                        <use xlink:href="#todo__box" class="todo__box"></use>
+                        <use xlink:href="#todo__check" class="todo__check"></use>
+                        <use xlink:href="#todo__circle" class="todo__circle"></use>
+                      </svg>
+                      <div class="todo__text">`+this.taskName+`</div>
+                    </label>`;
+        $(".todo-list").append(taskHtml);
+      }  
+      i++;
     });
   });
   </script>
