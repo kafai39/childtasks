@@ -153,8 +153,12 @@
   //var usersDB_url = "https://docs.google.com/spreadsheets/d/1yOLoSGZuLpXAkhIlzaGlsZUelDyvq6kvpRAs2qrLFQc/edit?usp=sharing";
   var usersDB_url = "https://docs.google.com/spreadsheets/d/1yOLoSGZuLpXAkhIlzaGlsZUelDyvq6kvpRAs2qrLFQc/gviz/tq";
   
-  fetch(usersDB_url).then(res=>res.text()).then(data=>{
-    console.log(data);
+  fetch(usersDB_url).then(res=>res.text()).then(req=>{
+    console.log(req);
+    const data = JSON.parse(req.substr(47).slice(0,2));
+    data.table.cols.array.forEach((heading) => {
+      console.log(heading);
+    });
   });
   </script>
 
