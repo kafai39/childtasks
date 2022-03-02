@@ -16,7 +16,7 @@
   fetch(usersDB_url).then(res=>res.text()).then(req=>{
     console.log(req);
     const data = JSON.parse(req.substr(47).slice(0,-2));
-    data.table.cols.array.forEach((heading) => {
+    data.table.cols.forEach((heading) => {
       console.log(heading);
     });
   });
