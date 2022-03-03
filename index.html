@@ -4,66 +4,68 @@
     <link href="css/custom.css" rel="stylesheet" >
     <script src="js/jquery-3.6.0.min.js" ></script>
     <script src="js/bootstrap.bundle.min.js" ></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDra_j4zrn-tZHx8X3ZhtcVEW8kylvTbME",
+    authDomain: "child-tasks.firebaseapp.com",
+    databaseURL: "https://child-tasks-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "child-tasks",
+    storageBucket: "child-tasks.appspot.com",
+    messagingSenderId: "23491337274",
+    appId: "1:23491337274:web:340c853d464d7877d9e903",
+    measurementId: "G-VVPNFN0X30"
+  };
 
-    <style>
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig); 
 
-    </style>
+  import {getDatabase, ref, get, set, child, update, remove } 
+  from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
 
-<script>
-  //var usersDB_url = "https://docs.google.com/spreadsheets/d/1yOLoSGZuLpXAkhIlzaGlsZUelDyvq6kvpRAs2qrLFQc/edit?usp=sharing";
-  var usersDB_url = "https://docs.google.com/spreadsheets/d/1yOLoSGZuLpXAkhIlzaGlsZUelDyvq6kvpRAs2qrLFQc/gviz/tq";
-  var userRows = [];
-  var userTask_url = "https://docs.google.com/spreadsheets/d/1yOLoSGZuLpXAkhIlzaGlsZUelDyvq6kvpRAs2qrLFQc/gviz/tq";
-  var childTasks = [];
-  fetch(usersDB_url).then(res=>res.text()).then(req=>{
-  /*
-    console.log(req);
-    const data = JSON.parse(req.substr(47).slice(0,-2));
-    data.table.cols.forEach((heading) => {
-      console.log(heading);
-    });
-  */
-  const data = JSON.parse(req.substr(47).slice(0,-2));
-    data.table.rows.forEach((row) => {
-      console.log(row);
-      var userRow = { userId: row.c[0].v
-                      ,userName: row.c[1].v
-                      ,userImageUrl: row.c[2].v
-                    ,userType: row.c[3].v };
-      userRows.push(userRow);
-    });
+  const db = getDatabase();
+  const dbref = ref(db);
+  const urlSearchParams = new URLSearchParams(window.location.search);
+  const params = Object.fromEntries(urlSearchParams.entries());
+  $(document).ready(function(){
+    GetUserInfo();
   });
 
-
-  fetch(userTask_url).then(res=>res.text()).then(req=>{
-
-  const data = JSON.parse(req.substr(47).slice(0,-2));
-    data.table.rows.forEach((row) => {
-      console.log(row);
-      var childTask = { taskId: row.c[0].v
-                      ,taskName: row.c[1].v
-                      ,score: row.c[2].v
-                    ,markType: row.c[3].v };
-                    childTasks.push(childTask);
+  function GetUserInfo(){
+    get(child(dbref,"Users/")).then((users)=>{
+      console.log(users.val());
+      var userInfo = users.val().find(n=>n.UserId == params.user);
+      $(".user-profile-pic img").attr("src", userInfo.ImageURL);
     });
-    var i=0;
-    $(childTasks).each(function(){
-      if (i>0){
-        var taskHtml = `<label class="todo">
-                      <input class="todo__state" value="`+this.taskId+`" data-score="`+this.score+`" type="checkbox" />
-                       <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
-                        <use xlink:href="#todo__line" class="todo__line"></use>
-                        <use xlink:href="#todo__box" class="todo__box"></use>
-                        <use xlink:href="#todo__check" class="todo__check"></use>
-                        <use xlink:href="#todo__circle" class="todo__circle"></use>
-                      </svg>
-                      <div class="todo__text">`+this.taskName+`</div>
-                    </label>`;
-        $(".todo-list").append(taskHtml);
-      }  
-      i++;
-    });
-  });
+    //console.log(params.user);
+  }
+
+  get(child(dbref,"Tasks/")).then((tasks)=>{
+    if (tasks.exists()){
+        console.log(tasks.val());
+        var childTasks = tasks.val();
+        $(childTasks).each(function(){ 
+            var taskHtml = `<label class="todo">
+                          <input class="todo__state" value="`+this.ID+`" data-score="`+this.Score+`" type="checkbox" />
+                          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
+                            <use xlink:href="#todo__line" class="todo__line"></use>
+                            <use xlink:href="#todo__box" class="todo__box"></use>
+                            <use xlink:href="#todo__check" class="todo__check"></use>
+                            <use xlink:href="#todo__circle" class="todo__circle"></use>
+                          </svg>
+                          <div class="todo__text">`+this.Name+`</div>
+                        </label>`;
+            $(".todo-list").append(taskHtml);
+ 
+        });
+        //users.val().find(n=>n.Score == 20);
+    }
+});
+
   </script>
 
 </head>
@@ -80,10 +82,10 @@
       
                   <div class="text-center pt-3 pb-2">
                     <div class="user-profile-pic"> 
-                      <img src="/img/hayden.jpeg" alt="Check" width="120">
+                      <img src="" alt="Photo" width="120">
                     </div>
                     
-                    <h2 class="my-4">Task List</h2>
+                    <h2 class="my-4">儲FUN Actions</h2>
                   </div>
       
                   <svg viewBox="0 0 0 0" style="position: absolute; z-index: -1; opacity: 0;">
@@ -107,47 +109,6 @@
                   
                   
                   <div class="todo-list">
-                    <label class="todo">
-                      <input class="todo__state" type="checkbox" />
-                      
-                      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
-                        <use xlink:href="#todo__line" class="todo__line"></use>
-                        <use xlink:href="#todo__box" class="todo__box"></use>
-                        <use xlink:href="#todo__check" class="todo__check"></use>
-                        <use xlink:href="#todo__circle" class="todo__circle"></use>
-                      </svg>
-                  
-                      <div class="todo__text">Do a very important task</div>
-                      
-                    </label>
-                  
-                    <label class="todo">
-                  
-                      <input class="todo__state" type="checkbox" />
-                  
-                      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
-                        <use xlink:href="#todo__line" class="todo__line"></use>
-                        <use xlink:href="#todo__box" class="todo__box"></use>
-                        <use xlink:href="#todo__check" class="todo__check"></use>
-                        <use xlink:href="#todo__circle" class="todo__circle"></use>
-                      </svg>
-                  
-                      <div class="todo__text">Another important task</div>
-                      
-                    </label>
-                  
-                    <label class="todo">
-                      <input class="todo__state" type="checkbox" />
-                      
-                      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
-                        <use xlink:href="#todo__line" class="todo__line"></use>
-                        <use xlink:href="#todo__box" class="todo__box"></use>
-                        <use xlink:href="#todo__check" class="todo__check"></use>
-                        <use xlink:href="#todo__circle" class="todo__circle"></use>
-                      </svg>
-                      
-                      <div class="todo__text">Not so important task</div>
-                    </label>
                   </div>
       
       
