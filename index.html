@@ -45,8 +45,8 @@
       $("#username-info").html("Hello, " + userInfo.UserName);
     });
 
-    var todayStr = moment().format("MMMM DD YYYY");
-    $("#today-info").html(todayStr);
+    //var todayStr = moment().format("MMMM DD YYYY");
+    //$("#today-info").html(todayStr);
     //console.log(params.user);
   }
 
@@ -55,6 +55,7 @@
         console.log(tasks.val());
         var childTasks = tasks.val();
         $(childTasks).each(function(){ 
+            if (parseInt(this.Score)>0){
             var taskHtml = `<label class="todo">
                           <input class="todo__state" value="`+this.ID+`" data-score="`+this.Score+`" type="checkbox" />
                           <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
@@ -64,8 +65,23 @@
                             <use xlink:href="#todo__circle" class="todo__circle"></use>
                           </svg>
                           <div class="todo__text">`+this.Name+`</div>
-                        </label>`;
+                        </label>`;         
             $(".todo-list").append(taskHtml);
+                      }
+                      else
+                      {
+                        var taskHtml = `<label class="todo todo_red">
+                          <input class="todo__state" value="`+this.ID+`" data-score="`+this.Score+`" type="checkbox" />
+                          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
+                            <use xlink:href="#todo__line_red" class="todo__line"></use>
+                            <use xlink:href="#todo__box_red" class="todo__box"></use>
+                            <use xlink:href="#todo__check_red" class="todo__check"></use>
+                            <use xlink:href="#todo__circle_red" class="todo__circle"></use>
+                          </svg>
+                          <div class="todo__text">`+this.Name+`</div>
+                        </label>`;         
+            $(".dont-do-list").append(taskHtml);
+                      }
  
         });
         //users.val().find(n=>n.Score == 20);
@@ -87,16 +103,20 @@
     #today-info {
       float: right;
     }
+    .full-width-container{
+      width: 100%;
+      max-width: 980px;
+    }
   </style>
 </head>
 <body>
 
     <section class="gradient-custom-2" id="main-body">
-        <div class="container">
+        <div class="container full-width-container">
           <div id="top-info">
               <div id="username-info" class="p-2 text-white"> 
               </div>
-              <div id="today-info" class="p-2 text-white">
+              <div id="userscore-info" class="p-2 text-white">
               </div>
           </div>
           <div class="row d-flex justify-content-center align-items-center h-100">
@@ -131,11 +151,35 @@
                       <circle id="todo__circle" cx="13.5" cy="12.5" r="10"></circle>
                     </defs>
                   </svg>
+
+                  <svg viewBox="0 0 0 0" style="position: absolute; z-index: -1; opacity: 0;">
+                    <defs>
+                      <linearGradient id="boxGradient_red" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="25" y2="25">
+                        <stop offset="0%"   stop-color="rgb(240, 154, 154)"/>
+                        <stop offset="100%" stop-color="rgb(255, 0, 0)"/>
+                      </linearGradient>
+                  
+                      <linearGradient id="lineGradient_red">
+                        <stop offset="0%"    stop-color="rgb(255, 0, 0)"/>
+                        <stop offset="100%"  stop-color="rgb(240, 154, 154)"/>
+                      </linearGradient>
+                  
+                      <path id="todo__line_red" stroke="url(#lineGradient_red)" d="M21 12.3h168v0.1z"></path>
+                      <path id="todo__box_red" stroke="url(#boxGradient_red)" d="M21 12.7v5c0 1.3-1 2.3-2.3 2.3H8.3C7 20 6 19 6 17.7V7.3C6 6 7 5 8.3 5h10.4C20 5 21 6 21 7.3v5.4"></path>
+                      <path id="todo__check_red" stroke="url(#boxGradient_red)" d="M10 13l2 2 5-5"></path>
+                      <circle id="todo__circle_red" cx="13.5" cy="12.5" r="10"></circle>
+                    </defs>
+                  </svg>
                   
                   
                   <div class="todo-list">
                   </div>
       
+                  <div class="text-center pt-3 pb-2">
+                    <h2 class="my-4">扣FUN Actions</h2>
+                  </div>
+                  <div class="dont-do-list">
+                  </div>
       
                 </div>
               </div>
