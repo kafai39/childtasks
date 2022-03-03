@@ -28,7 +28,7 @@
     .todo-list, .dont-do-list {
 background: #FFF;
 font-size: 20px;
-max-width: 90%;
+max-width: 100%;
 margin: auto;
 padding: 0.5em 1em;
 box-shadow: 0 5px 30px rgba(0,0,0,0.2);
@@ -36,7 +36,7 @@ box-shadow: 0 5px 30px rgba(0,0,0,0.2);
 .todo {
 display: block;
 position: relative;
-padding: 2em 1em 1em 16%;
+padding: 0.5em 0.5em 0.5em 16%;
 margin: 0 auto;
 cursor: pointer;
 border-bottom: solid 1px #ddd;
@@ -53,7 +53,6 @@ opacity: 0;
 .todo__text {
 color: #135156;
 transition: all 0.4s linear 0.4s;
-margin-bottom: 1em;
 }
 .todo__icon {
 position: absolute;
