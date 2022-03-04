@@ -55,6 +55,7 @@
     var todayStr = moment().format("DD-MM-YYYY");
     set(ref(db,"DailyTasks/" + todayStr + "/" + params.user),dailytasks).then(()=>{
             console.log("done!");
+            alert("快D通知爸爸媽媽啦！");
         });
   }
 
