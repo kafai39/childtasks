@@ -1,0 +1,190 @@
+<html>
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="css/bootstrap.min.css" rel="stylesheet" >
+    <link href="css/custom.css" rel="stylesheet" >
+    <script src="js/jquery-3.6.0.min.js" ></script>
+    <script src="js/bootstrap.bundle.min.js" ></script>    
+    <script src="js/moment.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDra_j4zrn-tZHx8X3ZhtcVEW8kylvTbME",
+    authDomain: "child-tasks.firebaseapp.com",
+    databaseURL: "https://child-tasks-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "child-tasks",
+    storageBucket: "child-tasks.appspot.com",
+    messagingSenderId: "23491337274",
+    appId: "1:23491337274:web:340c853d464d7877d9e903",
+    measurementId: "G-VVPNFN0X30"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig); 
+
+  import {getDatabase, ref, get, set, child, update, remove } 
+  from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
+
+  const db = getDatabase();
+  const dbref = ref(db);
+  const urlSearchParams = new URLSearchParams(window.location.search);
+  const params = Object.fromEntries(urlSearchParams.entries());
+  
+  $(document).ready(function(){
+    CheckCurrentUserIsParentAccount();
+  }); 
+ 
+ var allusers = [];
+  function CheckCurrentUserIsParentAccount(){
+    
+
+    get(child(dbref,"Users/")).then((users)=>{
+      console.log(users.val());
+      allusers = users.val();
+      var parentInfo = users.val().find(n=>n.UserId == params.user);
+      //var childInfo = users.val().find(n=>n.UserId == params.child);
+      if (parentInfo){
+        if (parentInfo.UserType == "Parent"){
+        //$(".user-profile-pic img").attr("src", childInfo.ImageURL);
+        $("#username-info").html("Hi, " + parentInfo.UserName);
+          GetDailyTasks();
+        }
+        else{
+          alert("Your do not have permission to access this page.");
+        }
+      }
+    });
+
+    //var todayStr = moment().format("MMMM DD YYYY");
+    //$("#today-info").html(todayStr);
+    //console.log(params.user);
+  }
+  var usertasks;
+  function GetDailyTasks(){
+    //var todayStr = moment().format("DD-MM-YYYY");
+    var todayStr = params.date;
+    get(child(dbref,"DailyTasks/Pending")).then((pendings)=>{
+      if (pendings.exists()){
+        var pList = pendings.val(); 
+        console.log(pList);
+
+        var keys = Object.keys(pList);
+        $(keys).each(function(){
+            var dateStr = this;
+            var rowHtml = "<div class='padding-list-row'>";
+              rowHtml = rowHtml + "<div class='padding-date text-center'>"+dateStr+"</div>";
+            //$("#padding-list").append("<div class='padding-date text-center'>"+dateStr+"</div>");
+            var subkeys = Object.keys(pList[this]);
+            $(subkeys).each(function(){
+                var userId = this;
+                var userInfo = allusers.find(n=>n.UserId == userId);
+                //$("#padding-list").append("<div class='padding-item'><a href='approval.html?user="+ params.user + "&child=" + userInfo.UserId + "&date=" + dateStr +"'><img src='"+ userInfo.ImageURL +"'/></a></div>");
+                rowHtml = rowHtml + "<div class='padding-item'><a href='approval.html?user="+ params.user + "&child=" + userInfo.UserId + "&date=" + dateStr +"'><img src='"+ userInfo.ImageURL +"'/></a></div>";
+            });
+
+            $("#padding-list").append(rowHtml);
+        });
+      }
+    });
+  }
+
+  </script>
+  <style>
+  
+  
+
+#main-body{
+      height: 100% !important;
+      padding-top:30px;
+    }
+    #top-info{
+      font-size: 2em;
+      position: fixed;
+      width: 100%;
+      height: 75px;
+      background: #fff;
+      z-index: 1;
+      color: rgb(113, 183, 244);
+      box-shadow: 5px 5px 10px rgba(0,0,0, 0.3);
+    }
+
+    #top-info > div {
+      display: inline-block;
+    }
+    #today-info, #userscore-info {
+      float: right;
+      border: 4px solid;
+      margin: 4px;
+      padding: 5px;
+      border-radius: 15px;
+      margin-right: 20px;
+      display: none;
+    }
+    .full-width-container{
+      width: 100%;
+      max-width: 980px;
+      padding-top: 60px;
+    }
+  
+  
+.padding-item {
+  display: inline-block;
+  max-width: 40%;
+  margin-right: 10px;
+}
+.padding-item img {
+  width: 100%;
+} 
+.padding-list-row {
+  background: #fff;
+  text-align: center;
+  padding-bottom: 20px;
+}
+#padding-list {
+  margin-top: 20px;
+}
+.padding-date {
+  color: #41b348;
+  font-size: 2em;
+}
+  
+  </style>
+</head>
+<body>
+
+  <div id="top-info">
+    <div id="username-info" class="p-2"> 
+    </div>
+</div>
+    <section class="gradient-custom-2" id="main-body">
+        <div class="container full-width-container">
+          <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-md-12 col-xl-10">
+      
+              <div class="card mask-custom">
+                <div class="card-body p-4 text-white">
+      
+
+                  <div class="text-center pt-3 pb-2" style="background: rgb(113, 183, 244);">
+                    <h2 class="my-4">請審核以下寶寶的Fun Actions</h2>
+                  </div>
+      
+                  <div id="padding-list">
+                  </div> 
+
+                </div>
+              </div>
+      
+            </div>
+          </div>
+        </div>
+      </section>
+
+</body>
+</html>
