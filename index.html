@@ -68,7 +68,7 @@
       {
         if (userInfo.UserType == "Student"){
           $(".user-profile-pic img").attr("src", userInfo.ImageURL);
-          $("#username-info").html("Hello, " + userInfo.UserName);
+          $("#username-info").html("Hi, " + userInfo.UserName);
           GenerateTask();
           GetUserScore();
         }
@@ -183,7 +183,7 @@
       height: 100% !important;
     }
     #top-info{
-      font-size: 2em;
+      font-size: 1.5em;
     }
 
     #top-info > div {

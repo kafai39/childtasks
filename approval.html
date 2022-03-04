@@ -85,7 +85,7 @@
       if (parentInfo && childInfo){
         if (parentInfo.UserType == "Parent"){
         $(".user-profile-pic img").attr("src", childInfo.ImageURL);
-        $("#username-info").html("Hello, " + parentInfo.UserName);
+        $("#username-info").html("Hi, " + parentInfo.UserName);
         GenerateTask();
         }
         else{
@@ -179,7 +179,7 @@
       height: 100% !important;
     }
     #top-info{
-      font-size: 2em;
+      font-size: 1.5em;
     }
 
     #top-info > div {
