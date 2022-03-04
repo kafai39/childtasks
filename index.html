@@ -1,7 +1,7 @@
 <html>
 <head>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="css/bootstrap.min.css" rel="stylesheet" >
     <link href="css/custom.css" rel="stylesheet" >
@@ -35,61 +35,101 @@
   const dbref = ref(db);
   const urlSearchParams = new URLSearchParams(window.location.search);
   const params = Object.fromEntries(urlSearchParams.entries());
+  
   $(document).ready(function(){
     GetUserInfo();
-  });
+  }); 
+
+  var dailytasks = [];
+  window.StoreToDB = function StoreToDB(){
+    dailytasks = [];
+    $("input.todo__state").each(function(){ 
+      var dailytask = {
+          TaskID: $(this).val(),
+          Score: $(this).attr("data-score"),
+          Finished: this.checked,
+      };
+      dailytasks.push(dailytask);
+    });
+    console.log(dailytasks);
+    var todayStr = moment().format("DD-MM-YYYY");
+    set(ref(db,"DailyTasks/" + todayStr + "/" + params.user),dailytasks).then(()=>{
+            console.log("done!");
+        });
+  }
 
   function GetUserInfo(){
     get(child(dbref,"Users/")).then((users)=>{
       console.log(users.val());
       var userInfo = users.val().find(n=>n.UserId == params.user);
       $(".user-profile-pic img").attr("src", userInfo.ImageURL);
-      
       $("#username-info").html("Hello, " + userInfo.UserName);
+      GenerateTask();
     });
 
     //var todayStr = moment().format("MMMM DD YYYY");
     //$("#today-info").html(todayStr);
     //console.log(params.user);
   }
+  var usertasks;
+  function GetDailyTasks(){
+    var todayStr = moment().format("DD-MM-YYYY");
+    get(child(dbref,"DailyTasks/" + todayStr + "/" + params.user)).then((tasks)=>{
+      if (tasks.exists()){
+        usertasks = tasks.val(); 
+        console.log(usertasks);
+        $("input.todo__state").each(function(){ 
+            var taskID = $(this).val();
+            //console.log(usertasks.find(n=>n.TaskID.toString() == taskID).Finished);
 
-  get(child(dbref,"Tasks/")).then((tasks)=>{
-    if (tasks.exists()){
-        console.log(tasks.val());
-        var childTasks = tasks.val();
-        $(childTasks).each(function(){ 
-            if (parseInt(this.Score)>0){
-            var taskHtml = `<label class="todo">
-                          <input class="todo__state" value="`+this.ID+`" data-score="`+this.Score+`" type="checkbox" />
-                          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
-                            <use xlink:href="#todo__line" class="todo__line"></use>
-                            <use xlink:href="#todo__box" class="todo__box"></use>
-                            <use xlink:href="#todo__check" class="todo__check"></use>
-                            <use xlink:href="#todo__circle" class="todo__circle"></use>
-                          </svg>
-                          <div class="todo__text">`+this.Name+`</div>
-                        </label>`;         
-            $(".todo-list").append(taskHtml);
-                      }
-                      else
-                      {
-                        var taskHtml = `<label class="todo todo_red">
-                          <input class="todo__state" value="`+this.ID+`" data-score="`+this.Score+`" type="checkbox" />
-                          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
-                            <use xlink:href="#todo__line_red" class="todo__line"></use>
-                            <use xlink:href="#todo__box_red" class="todo__box"></use>
-                            <use xlink:href="#todo__check_red" class="todo__check"></use>
-                            <use xlink:href="#todo__circle_red" class="todo__circle"></use>
-                          </svg>
-                          <div class="todo__text">`+this.Name+`</div>
-                        </label>`;         
-            $(".dont-do-list").append(taskHtml);
-                      }
- 
+            this.checked = usertasks.find(n=>n.TaskID.toString() == taskID).Finished;
         });
-        //users.val().find(n=>n.Score == 20);
-    }
-});
+      }
+    });
+  }
+
+  function GenerateTask(){
+      get(child(dbref,"Tasks/")).then((tasks)=>{
+        if (tasks.exists()){
+            console.log(tasks.val());
+            var childTasks = tasks.val();
+            $(childTasks).each(function(){ 
+                if (parseInt(this.Score)>0){
+                var taskHtml = `<label class="todo">
+                              <input class="todo__state" value="`+this.ID+`" data-score="`+this.Score+`" type="checkbox" />
+                              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
+                                <use xlink:href="#todo__line" class="todo__line"></use>
+                                <use xlink:href="#todo__box" class="todo__box"></use>
+                                <use xlink:href="#todo__check" class="todo__check"></use>
+                                <use xlink:href="#todo__circle" class="todo__circle"></use>
+                              </svg>
+                              <div class="todo__text">`+this.Name+`&nbsp;(`+this.Score+`分)</div>
+                            </label>`;         
+                $(".todo-list").append(taskHtml);
+                          }
+                          else
+                          {
+                            var taskHtml = `<label class="todo todo_red">
+                              <input class="todo__state" value="`+this.ID+`" data-score="`+this.Score+`" type="checkbox" />
+                              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
+                                <use xlink:href="#todo__line_red" class="todo__line"></use>
+                                <use xlink:href="#todo__box_red" class="todo__box"></use>
+                                <use xlink:href="#todo__check_red" class="todo__check"></use>
+                                <use xlink:href="#todo__circle_red" class="todo__circle"></use>
+                              </svg>
+                              <div class="todo__text">`+this.Name+`&nbsp;(`+this.Score+`分)</div>
+                            </label>`;         
+                $(".dont-do-list").append(taskHtml);
+                          }
+    
+            });
+            GetDailyTasks();
+            //users.val().find(n=>n.Score == 20);
+        }
+    });
+  }
+
+ 
 
   </script>
   <style>
@@ -179,8 +219,8 @@
                   
                   
                   <div class="todo-list">
-                  </div>
-      
+                  </div> 
+
                   <div class="text-center pt-3 pb-2">
                     <h2 class="my-4">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
@@ -190,6 +230,10 @@
                   <div class="dont-do-list">
                   </div>
       
+                  <div class="text-center pt-3">
+                    <button class="btn btn-info btn-lg text-white" type="button" onclick="StoreToDB()" >OK!</button>
+                  </div>
+
                 </div>
               </div>
       
