@@ -89,11 +89,14 @@
       get(child(dbref,"ScoreSummary/" + params.user)).then((scoresum)=>{
         if (scoresum.exists()){
           var scores = scoresum.val();
+          console.log(scores);
           $(scores).each(function(){ 
             //totalScore = totalScore + this.Score;
             var keys = Object.keys(this);
-            var score = this[keys[0]].Score;
-            totalScore = totalScore + score;
+            for(var i=0; i<keys.length;i++){
+              var score = this[keys[i]].Score;
+              totalScore = totalScore + score;
+            }
           });
         }
         $("#userscore-info").html("Score: " + totalScore);
@@ -179,41 +182,7 @@
 
   </script>
   <style>
-
-
-
-#main-body{
-      height: 100% !important;
-      padding-top:30px;
-    }
-    #top-info{
-      font-size: 2em;
-      position: fixed;
-      width: 100%;
-      height: 75px;
-      background: #fff;
-      z-index: 1;
-      color: rgb(113, 183, 244);
-      box-shadow: 5px 5px 10px rgba(0,0,0, 0.3);
-    }
-
-    #top-info > div {
-      display: inline-block;
-    }
-    #today-info, #userscore-info {
-      float: right;
-      border: 4px solid;
-      margin: 4px;
-      padding: 5px;
-      border-radius: 15px;
-      margin-right: 20px;
-    }
-    .full-width-container{
-      width: 100%;
-      max-width: 980px;
-      padding-top: 60px;
-    }
-  
+ 
   
 .user-profile-pic {
   max-width: 150px;
@@ -237,7 +206,7 @@
 </div>
     <section class="gradient-custom-2" id="main-body">
         <div class="container full-width-container">
-          <div class="row d-flex justify-content-center align-items-center h-100">
+          <div class="row d-flex justify-content-center h-100">
             <div class="col-md-12 col-xl-10">
       
               <div class="card mask-custom">

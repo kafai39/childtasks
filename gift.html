@@ -79,23 +79,28 @@
       });
   }
 
+  var gList;
   function GenerateGiftList(){
-    var todayStr = params.date;
+    //var todayStr = params.date;
     get(child(dbref,"GiftList")).then((gifts)=>{
       if (gifts.exists()){
-        var gList = gifts.val(); 
+        gList = gifts.val(); 
         console.log(gList);
 
         var rowHtml = "<div class='gift-list'>";
         $(gList).each(function(){
-            rowHtml = rowHtml + "<div class='gift-item'><div class='gift-item-image'><a href='javascript:void(0);'><img src='"+ this.ImageURL +"'/></a></div>";
+            rowHtml = rowHtml + "<div class='gift-item'><a href='javascript:void(0);' onclick='OpenGiftPopup(this)' data-id='"+this.ID+"' data-bs-toggle='modal' data-bs-target='#exampleModal'><div class='gift-item-image'><img src='"+ this.ImageURL +"'/></div>";
             rowHtml = rowHtml + "<div class='gift-item-title'>"+this.Name+"</br>("+this.ExchangePoints+"分)</div>"
-            rowHtml = rowHtml + "</div>";
+            rowHtml = rowHtml + "</a></div>";
         });
         var rowHtml = rowHtml + "</div>";
         $("#gift-list-container").append(rowHtml);
       }
     });
+  }
+
+  window.OpenGiftPopup = function OpenGiftPopup(elm){
+    //alert($(elm).attr("data-id"));
   }
 
   </script>
@@ -144,7 +149,24 @@
 }
   
   
-  
+.modal {
+  text-align: center;
+}
+
+.modal:before {
+  display: inline-block;
+  vertical-align: middle;
+  content: " ";
+  height: 100%;
+}
+
+.modal-dialog {
+  display: inline-block;
+  text-align: left;
+  vertical-align: middle;
+  min-width: 400px;
+}
+
   
   </style>
 </head>
@@ -179,6 +201,27 @@
           </div>
         </div>
       </section>
+
+<!-- Button trigger modal -->
+  
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">兌換獎勵</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>
