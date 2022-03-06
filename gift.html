@@ -90,7 +90,7 @@
         var rowHtml = "<div class='gift-list'>";
         $(gList).each(function(){
             rowHtml = rowHtml + "<div class='gift-item'><a href='javascript:void(0);' onclick='OpenGiftPopup(this)' data-id='"+this.ID+"' data-bs-toggle='modal' data-bs-target='#exampleModal'><div class='gift-item-image'><img src='"+ this.ImageURL +"'/></div>";
-            rowHtml = rowHtml + "<div class='gift-item-title'>"+this.Name+"</br>("+this.ExchangePoints+"分)</div>"
+            rowHtml = rowHtml + "<div class='gift-item-title'>"+this.Name+"</br>("+this.ExchangePoints+"分)</div>";
             rowHtml = rowHtml + "</a></div>";
         });
         var rowHtml = rowHtml + "</div>";
@@ -101,7 +101,32 @@
 
   window.OpenGiftPopup = function OpenGiftPopup(elm){
     //alert($(elm).attr("data-id"));
+    var giftID = $(elm).attr("data-id");
+    console.log(gList);
+    var gItem = gList.find(n=>n.ID == parseInt(giftID));
+    console.log(gItem);
+    var itemhtml = `<div class='popup-gift-item' data-id=`+giftID+`>
+        <div class='gift-item-image'><img src='`+gItem.ImageURL+`'/></div>
+        <div class='gift-item-title'>確定使用(`+gItem.ExchangePoints+`分)換領`+gItem.Name+`</br></div>
+    </div>`;
+    $("#popup-gift-item-container").html(itemhtml);
   }
+
+  window.ExchangeGift = function ExchangeGift(){
+    //alert($(elm).attr("data-id"));
+    var giftID = $("#popup-gift-item-container .popup-gift-item").attr("data-id");
+    console.log(giftID);
+    var gItem = gList.find(n=>n.ID == parseInt(giftID));
+    console.log(gItem);
+    /*
+    var itemhtml = `<div class='popup-gift-item' data-id=`+giftID+`>
+        <div class='gift-item-image'><img src='`+gItem.ImageURL+`'/></div>
+        <div class='gift-item-title'>確定使用(`+gItem.ExchangePoints+`分)換領`+gItem.Name+`</br></div>
+    </div>`;
+    $("#popup-gift-item").html(itemhtml);
+    */
+  }
+  
 
   </script>
   <style>
@@ -213,11 +238,16 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-
+            <div id='popup-gift-item-container'>
+                <div class='popup-gift-item'>
+                    <div class='gift-item-image'><img src=''/></div>
+                    <div class='gift-item-title'></div>
+                </div>
+            </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary">OK</button>
+          <button type="button" class="btn btn-primary" onclick="ExchangeGift()">OK</button>
         </div>
       </div>
     </div>
