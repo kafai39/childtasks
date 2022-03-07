@@ -118,6 +118,7 @@
     console.log(giftID);
     var gItem = gList.find(n=>n.ID == parseInt(giftID));
     console.log(gItem);
+
     /*
     var itemhtml = `<div class='popup-gift-item' data-id=`+giftID+`>
         <div class='gift-item-image'><img src='`+gItem.ImageURL+`'/></div>
@@ -125,6 +126,19 @@
     </div>`;
     $("#popup-gift-item").html(itemhtml);
     */
+
+
+    //ExchangedGift 
+    var datestr = moment().toISOString();
+    var exchangeitem = {
+
+    };
+    set(ref(db,"ExchangedGift/" + datestr),dailytasks).then(()=>{
+        console.log("done!");
+        alert("快D通知爸爸媽媽啦！");
+        $("#SubmittedMsg").show();
+    });
+    
   }
   
 
