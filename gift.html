@@ -38,6 +38,9 @@
   
   $(document).ready(function(){
     GetUserInfo();
+    $("#home-button").on("click",function(){
+      window.location.href="child.html?user=" + params.user;
+    });
   }); 
  
   function GetUserInfo(){
@@ -48,7 +51,7 @@
       {
         if (userInfo.UserType == "Student"){
           $(".user-profile-pic img").attr("src", userInfo.ImageURL);
-          $("#username-info").html("Hi, " + userInfo.UserName);
+          $("#username-info").append("Hi, " + userInfo.UserName);
           GenerateGiftList();
           GetUserScore();
         }
@@ -59,9 +62,10 @@
     });
   }
 
+  var totalScore;
   function GetUserScore(){
       //#userscore-info
-      var totalScore = 0;
+      totalScore = 0;
       get(child(dbref,"ScoreSummary/" + params.user)).then((scoresum)=>{
         if (scoresum.exists()){
           var scores = scoresum.val();
@@ -89,7 +93,7 @@
 
         var rowHtml = "<div class='gift-list'>";
         $(gList).each(function(){
-            rowHtml = rowHtml + "<div class='gift-item'><a href='javascript:void(0);' onclick='OpenGiftPopup(this)' data-id='"+this.ID+"' data-bs-toggle='modal' data-bs-target='#exampleModal'><div class='gift-item-image'><img src='"+ this.ImageURL +"'/></div>";
+            rowHtml = rowHtml + "<div class='gift-item'><a href='javascript:void(0);' onclick='OpenGiftPopup(this)' data-id='"+this.ID+"' ><div class='gift-item-image'><img src='"+ this.ImageURL +"'/></div>";
             rowHtml = rowHtml + "<div class='gift-item-title'>"+this.Name+"</br>("+this.ExchangePoints+"分)</div>";
             rowHtml = rowHtml + "</a></div>";
         });
@@ -101,15 +105,24 @@
 
   window.OpenGiftPopup = function OpenGiftPopup(elm){
     //alert($(elm).attr("data-id"));
+
     var giftID = $(elm).attr("data-id");
-    console.log(gList);
-    var gItem = gList.find(n=>n.ID == parseInt(giftID));
-    console.log(gItem);
-    var itemhtml = `<div class='popup-gift-item' data-id=`+giftID+`>
-        <div class='gift-item-image'><img src='`+gItem.ImageURL+`'/></div>
-        <div class='gift-item-title'>確定使用(`+gItem.ExchangePoints+`分)換領`+gItem.Name+`</br></div>
-    </div>`;
-    $("#popup-gift-item-container").html(itemhtml);
+        console.log(gList);
+        var gItem = gList.find(n=>n.ID == parseInt(giftID));
+        console.log(gItem);
+    if (gItem.ExchangePoints > totalScore){
+        alert("不夠分啦寶寶");
+        return false;
+    }
+    else
+    {
+        var itemhtml = `<div class='popup-gift-item' data-id=`+giftID+`>
+            <div class='gift-item-image'><img src='`+gItem.ImageURL+`'/></div>
+            <div class='gift-item-title'>確定使用(`+gItem.ExchangePoints+`分)換領`+gItem.Name+`</br></div>
+        </div>`;
+        $("#popup-gift-item-container").html(itemhtml);
+        $('#exampleModal').modal('show');
+    }
   }
 
   window.ExchangeGift = function ExchangeGift(){
@@ -129,15 +142,18 @@
 
 
     //ExchangedGift 
-    var datestr = moment().toISOString();
-    var exchangeitem = {
-
-    };
-    set(ref(db,"ExchangedGift/" + datestr),dailytasks).then(()=>{
-        console.log("done!");
-        alert("快D通知爸爸媽媽啦！");
-        $("#SubmittedMsg").show();
-    });
+    var currentdatestr = Date.now();
+    var todayStr = moment().format("DD-MM-YYYY");
+    set(ref(db,"ScoreSummary/" + params.user + "/" + currentdatestr),{
+        Date: todayStr,
+        Score: -(parseInt(gItem.ExchangePoints)),
+        GiftID: gItem.ID,
+        Type: "ExchangeGift"
+      }).then(()=>{
+            console.log("done!"); 
+            alert("快D通知媽媽兌換獎勵啦！");
+            window.location.href= window.location.href;
+        });
     
   }
   
@@ -213,6 +229,12 @@
 
     <div id="top-info">
         <div id="username-info" class="p-2"> 
+            <span id="home-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-house" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M2 13.5V7h1v6.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V7h1v6.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5zm11-11V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z"/>
+                <path fill-rule="evenodd" d="M7.293 1.5a1 1 0 0 1 1.414 0l6.647 6.646a.5.5 0 0 1-.708.708L8 2.207 1.354 8.854a.5.5 0 1 1-.708-.708L7.293 1.5z"/>
+              </svg>
+            </span>
         </div>
         <div id="userscore-info"  >
         </div>

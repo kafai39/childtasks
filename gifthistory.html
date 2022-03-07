@@ -1,0 +1,238 @@
+<html>
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="css/bootstrap.min.css" rel="stylesheet" >
+    <link href="css/custom.css" rel="stylesheet" >
+    <script src="js/jquery-3.6.0.min.js" ></script>
+    <script src="js/bootstrap.bundle.min.js" ></script>    
+    <script src="js/moment.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDra_j4zrn-tZHx8X3ZhtcVEW8kylvTbME",
+    authDomain: "child-tasks.firebaseapp.com",
+    databaseURL: "https://child-tasks-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "child-tasks",
+    storageBucket: "child-tasks.appspot.com",
+    messagingSenderId: "23491337274",
+    appId: "1:23491337274:web:340c853d464d7877d9e903",
+    measurementId: "G-VVPNFN0X30"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig); 
+
+  import {getDatabase, ref, get, set, child, update, remove } 
+  from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
+
+  const db = getDatabase();
+  const dbref = ref(db);
+  const urlSearchParams = new URLSearchParams(window.location.search);
+  const params = Object.fromEntries(urlSearchParams.entries());
+  
+  $(document).ready(function(){
+    CheckCurrentUserIsParentAccount();
+    $("#home-button").on("click",function(){
+      window.location.href="parent.html?user=" + params.user;
+    });
+  }); 
+ 
+  var allusers = [];
+  function CheckCurrentUserIsParentAccount(){
+    get(child(dbref,"Users/")).then((users)=>{
+      console.log(users.val());
+      allusers = users.val();
+      var parentInfo = users.val().find(n=>n.UserId == params.user); 
+      if (parentInfo){
+        if (parentInfo.UserType == "Parent"){ 
+        $("#username-info").append("Hi, " + parentInfo.UserName);
+          GetChildInfo();
+          GenerateGiftList();
+        }
+        else{
+          alert("Your do not have permission to access this page.");
+        }
+      }
+    });
+  }
+ 
+  function GetChildInfo(){
+      //#child-list
+      
+    var rowHtml = "";
+    $(allusers).each(function(){
+        var userInfo = this;
+        if (userInfo.UserType == "Student"){ 
+        rowHtml = rowHtml + "<div class='padding-item'><a href='javascript:void(0);' onclick='GenerateGiftListHistory(this)' data-userid='"+userInfo.UserId+"'><img src='"+ userInfo.ImageURL +"'/></a></div>";         
+        }
+    });
+    $("#child-list").html(rowHtml);
+         
+
+  }
+
+  var gList;
+  function GenerateGiftList(){
+    //var todayStr = params.date;
+    get(child(dbref,"GiftList")).then((gifts)=>{
+      if (gifts.exists()){
+        gList = gifts.val(); 
+        console.log(gList);
+      }
+    });
+  }
+
+  window.GenerateGiftListHistory = function GenerateGiftListHistory(elm){
+
+    var exChangeList = [];
+    $("#exchange-list").html("");
+    //var todayStr = params.date;
+    $(".padding-item").removeClass("selected");
+    $(elm).parent().addClass("selected");
+
+    var childID = $(elm).attr("data-userid");
+
+    get(child(dbref,"ScoreSummary/" + childID)).then((scoresum)=>{
+        if (scoresum.exists()){
+          var scores = scoresum.val();
+          console.log(scores);
+          $(scores).each(function(){ 
+            //totalScore = totalScore + this.Score;
+            var keys = Object.keys(this);
+            for(var i=0; i<keys.length;i++){
+              var score = this[keys[i]].Score;
+              //totalScore = totalScore + score;
+              try
+              {
+                if (this[keys[i]].Type == "ExchangeGift"){
+                    var giftID = this[keys[i]].GiftID;
+                    var exchangeDate = new Date(parseInt(keys[i]));
+                    var gItem = gList.find(n=>n.ID == giftID);
+                    console.log(gItem);
+                    exChangeList.push({ID:giftID, 
+                        Date:exchangeDate, 
+                        ExchangePoints: this[keys[i]].Score,
+                        ImageURL: gItem.ImageURL,
+                        Name: gItem.Name
+                    });
+                }
+              }
+              catch(ex){}
+            }
+            console.log(exChangeList);
+            exChangeList.sort((a, b) => b.Date - a.Date);
+
+            $(exChangeList).each(function(){
+                var exRows = "";
+                exRows = exRows + "<div class='exchange-list-row'>";  
+                exRows = exRows + "<div class='exchange-item-date'>兌換時間: "+moment(this.Date).format("DD/MM/YYYY HH:mm");+"</div>";  
+                exRows = exRows + "<div class='exchange-item-name'>獎勵名稱: "+this.Name+"</div>";  
+                exRows = exRows + "<div class='exchange-item-expoints'>Score: "+this.ExchangePoints+"</div>";  
+
+                exRows = exRows + "</div>"; 
+                $("#exchange-list").append(exRows);
+            });
+
+          });
+        }
+        //$("#userscore-info").append("Score: " + totalScore);
+      });
+  }
+
+  
+  
+
+  </script>
+  <style>
+  
+
+  .padding-item {
+  display: inline-block;
+  max-width: 30%;
+  margin-right: 10px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.padding-item img {
+  width: 100%;
+} 
+.padding-list-row {
+  background: #fff;
+  text-align: center;
+  padding-bottom: 20px;
+}
+#child-list {
+  margin-top: 20px;
+  text-align: center;
+}
+.padding-date {
+  color: #41b348;
+  font-size: 2em;
+} 
+.padding-item.selected {
+  border: 4px solid rgb(113, 183, 244);
+}
+
+#exchange-list {
+  background: #fff;
+  margin-top: 20px;
+}
+.exchange-list-row {
+  color: rgb(113, 183, 244);
+  padding: 5px;
+  font-size: 1em;
+  border-bottom: 2px solid #eee;
+  margin-bottom: 10px;
+}
+  
+  </style>
+</head>
+<body>
+
+    <div id="top-info">
+        <div id="username-info" class="p-2"> 
+            <span id="home-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-house" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M2 13.5V7h1v6.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V7h1v6.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5zm11-11V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z"/>
+                <path fill-rule="evenodd" d="M7.293 1.5a1 1 0 0 1 1.414 0l6.647 6.646a.5.5 0 0 1-.708.708L8 2.207 1.354 8.854a.5.5 0 1 1-.708-.708L7.293 1.5z"/>
+              </svg>
+            </span>
+        </div>
+    </div>
+    <section class="gradient-custom-2" id="main-body">
+        <div class="container full-width-container">
+          <div class="row d-flex justify-content-center h-100">
+            <div class="col-md-12 col-xl-10">
+      
+              <div class="card mask-custom">
+                <div class="card-body p-4 text-white">
+      
+
+                  <div class="text-center pt-3 pb-2" style="background: rgb(113, 183, 244);">
+                    <h2 class="my-4">兌換歷史</h2>
+                  </div>
+      
+                  <div id='child-list'>
+                </div>
+
+                    <div id="exchange-list">
+
+                    </div>
+
+                </div>
+              </div>
+      
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+</body>
+</html>
