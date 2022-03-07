@@ -57,10 +57,11 @@
     });
     dailytasks.push({Approved:true});
     console.log(dailytasks);
-    var todayStr = moment().format("DD-MM-YYYY");
-    set(ref(db,"DailyTasks/Approved/" + todayStr + "/" + params.child),dailytasks).then(()=>{
+    //var todayStr = moment().format("DD-MM-YYYY");
+    var dateStr = params.date;
+    set(ref(db,"DailyTasks/Approved/" + dateStr + "/" + params.child),dailytasks).then(()=>{
         UpdateChildScoreSummary(totalScore);
-        remove(ref(db,"DailyTasks/Pending/" + todayStr + "/" + params.child)).then(()=>{
+        remove(ref(db,"DailyTasks/Pending/" + dateStr + "/" + params.child)).then(()=>{
             //alert("快D叫寶寶檢查分數啦！");
             window.location.href = "parent.html?user=" + params.user;
         });
@@ -177,7 +178,17 @@
   </script>
   <style> 
   
+   
   
+.user-profile-pic {
+  max-width: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-block;
+}
+.user-profile-pic img {
+  max-width: 100%;
+}
   </style>
 </head>
 <body>
