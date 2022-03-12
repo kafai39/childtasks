@@ -57,15 +57,17 @@
     console.log(dailytasks);
     var todayStr = moment().format("DD-MM-YYYY");
     set(ref(db,"DailyTasks/Pending/" + todayStr + "/" + params.user),dailytasks).then(()=>{
-        console.log("done!");
-        alert("快D通知爸爸媽媽啦！");
+        //console.log("done!");
+        //alert("快D通知爸爸媽媽啦！");
+
+        $('#exampleModal').modal('show');
         $("#SubmittedMsg").show();
     });
   }
 
   function GetUserInfo(){
     get(child(dbref,"Users/")).then((users)=>{
-      console.log(users.val());
+      //console.log(users.val());
       var userInfo = users.val().find(n=>n.UserId == params.user);
       if (userInfo)
       {
@@ -92,7 +94,7 @@
       get(child(dbref,"ScoreSummary/" + params.user)).then((scoresum)=>{
         if (scoresum.exists()){
           var scores = scoresum.val();
-          console.log(scores);
+          //console.log(scores);
           $(scores).each(function(){ 
             //totalScore = totalScore + this.Score;
             var keys = Object.keys(this);
@@ -111,14 +113,39 @@
     var todayStr = moment().format("DD-MM-YYYY");
     $("#SubmitButton").show();
     get(child(dbref,"DailyTasks/Pending/" + todayStr + "/" + params.user)).then((tasks)=>{
+      var todayScore = 0;
       if (tasks.exists()){
         usertasks = tasks.val(); 
         console.log(usertasks);
+
         $("input.todo__state").each(function(){ 
             var taskID = $(this).val(); 
             this.checked = usertasks.find(n=>n.TaskID.toString() == taskID).Finished;
+            if (this.checked){
+              todayScore = todayScore + usertasks.find(n=>n.TaskID.toString() == taskID).Score;
+            }
         });
         $("#SubmittedMsg").show();
+        if (params.mode == "gameoverreturn"){
+          if (usertasks.find(n=>n.TaskID.toString() == "9999") == null){            
+            usertasks.push({
+              TaskID: 9999,
+              Score: parseInt(params.score),
+              Finished: true,
+            });          
+            set(ref(db,"DailyTasks/Pending/" + todayStr + "/" + params.user),usertasks).then(()=>{
+                //$("#SubmittedMsg").show();
+            });
+          }
+        }
+        else
+        {
+          if (usertasks.find(n=>n.TaskID.toString() == "9999") == null){   
+            $('#exampleModal').modal('show');
+          }
+        }
+
+        GetTodayScore(todayScore);
       }
       else{
         get(child(dbref,"DailyTasks/Approved/" + todayStr + "/" + params.user)).then((tasks)=>{
@@ -128,22 +155,43 @@
             $("input.todo__state").each(function(){ 
                 var taskID = $(this).val(); 
                 this.checked = usertasks.find(n=>n.TaskID.toString() == taskID).Finished;
+                if (this.checked){
+                todayScore = todayScore + usertasks.find(n=>n.TaskID.toString() == taskID).Score;
+              }
             });
             $("#SubmitButton").hide();
             $("#CompletedMsg").show();
             $("input.todo__state").each(function(){ 
               $(this).attr("disabled", "disabled");
             });
+
+            GetTodayScore(todayScore);
           }
         });
       }
     });
   }
 
+  function GetTodayScore(todayScore){
+    var gamescore = 0;
+      try{
+        var gametask = usertasks.find(n=>n.TaskID.toString() == "9999");
+        gamescore = gametask.Score;
+        $("#game-list-item-container").hide();
+        $("#game-return-score-container").show();
+        $("#game-return-score").html("Today Game Bonus: "+gamescore+"");
+        $('#exampleModal').modal('show');
+        $(".TodayScore").html(todayScore + "<br/>(Game Bonus: "+gamescore+")");
+      }
+      catch(ex){
+        $(".TodayScore").html(todayScore);
+      }
+  }
+
   function GenerateTask(){
       get(child(dbref,"Tasks/")).then((tasks)=>{
         if (tasks.exists()){
-            console.log(tasks.val());
+            //console.log(tasks.val());
             var childTasks = tasks.val();
             $(childTasks).each(function(){ 
                 if (parseInt(this.Score)>0){
@@ -181,7 +229,9 @@
     });
   }
 
- 
+  window.PlayGame = function PlayGame(gamename){
+      window.location.href="game/"+gamename+".html?user=" + params.user;
+  }
 
   </script>
   <style>
@@ -195,6 +245,69 @@
 }
 .user-profile-pic img {
   max-width: 100%;
+}
+
+.game-list {
+  display: flex;
+  /*! flex-wrap: wrap; */
+  width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+.game-item {
+  flex: 1 1 33%;
+  /*! align-content: center; */
+  /*! text-align: center; */
+}
+.game-item-image {
+  width: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 20px auto 0px;
+  height: 150px;
+  border: 3px solid rgb(113, 183, 244);
+}
+.game-item-image img {
+  width: 100%;
+  height: 100%;
+}
+  
+.game-item-title {
+  width: 90%;
+  background: #fff;
+  display: inline-block;
+  margin-left: 5%;
+  color: rgb(113, 183, 244);
+  text-align: center;
+  margin-right: 5%;
+  margin-top: 10px;
+  border: 3px solid;
+  border-radius: 15px;
+}
+  
+  
+.modal {
+  text-align: center;
+}
+
+.modal:before {
+  display: inline-block;
+  vertical-align: middle;
+  content: " ";
+  height: 100%;
+}
+
+.modal-dialog {
+  display: inline-block;
+  text-align: left;
+  vertical-align: top !important;
+  width: 90%;
+  max-width: 600px;
+}
+
+#game-list-item-container > a:hover .game-item, #game-list-item-container > a:active .game-item {
+  background: rgb(160, 253, 245);
 }
   
   </style>
@@ -219,12 +332,12 @@
               <div class="card mask-custom">
                 <div class="card-body p-4 text-white">
       
-                  <div class="text-center pt-3 pb-2" id="CompletedMsg" style="display:none; background: rgb(113, 183, 244);">
-                    <h2 class="my-4">已完成今天的<br/>Fun Actions</h2>
+                  <div class="text-center pt-1 pb-1" id="CompletedMsg" style="display:none; background: rgb(113, 183, 244);">
+                    <h3 class="my-2">已完成今天的<br/>Fun Actions<br/>Score: <span class="TodayScore"></span></h2>
                   </div>
 
-                  <div class="text-center pt-3 pb-2" id="SubmittedMsg" style="display:none; background: rgb(113, 183, 244);">
-                    <h2 class="my-4">已提交今天的<br/>Fun Actions</h2>
+                  <div class="text-center pt-1 pb-1" id="SubmittedMsg" style="display:none; background: rgb(113, 183, 244);">
+                    <h3 class="my-2">已提交今天的<br/>Fun Actions<br/>Score: <span class="TodayScore"></span></h2>
                   </div>
 
                   <div class="text-center pt-3 pb-2">
@@ -301,6 +414,37 @@
           </div>
         </div>
       </section>
+
+       
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">玩遊戲儲FUN</h5>
+        </div>
+        <div class="modal-body">
+            <div id='game-list-item-container'>
+                <a href="javascript:void(0);" onclick="PlayGame('offtheline')">
+                  <div class='game-item pt-2 pb-2'>
+                    <div class='game-item-image'><img src='https://childtasks.netlify.app/img/offtheline.png'/></div>
+                    <div class='game-item-title'>Eat Sqaure</div>
+                  </div>
+                </a>
+            </div>
+            <div id='game-return-score-container' style="display:none;">
+                <div id='game-return-score'>
+                    
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
 </body>
 </html>
