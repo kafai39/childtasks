@@ -10,6 +10,14 @@ class Player
         this.yPrev2 = 0;
         this.boxSize = 12;
         this.speed = difficultyMode === 0 ? 250 : 400;
+
+
+        var urlSearchParams = new URLSearchParams(window.location.search);
+        var params = Object.fromEntries(urlSearchParams.entries());
+        if (params.user = '8f21c4ca-12b7-4a3b-8909-d5dd01ec30d0'){
+            this.speed = 150;
+        }
+        //this.speed = 150;
         this.maxButtonClickLookBackTime = 0.2;
         this.lastLeftButtonClickedDeltaTime = Number.MAX_SAFE_INTEGER;
         this.curLineDist = 0;
