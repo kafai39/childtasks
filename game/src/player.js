@@ -9,7 +9,7 @@ class Player
         this.xPrev2 = 0;
         this.yPrev2 = 0;
         this.boxSize = 12;
-        this.speed = difficultyMode === 0 ? 250 : 400;
+        this.speed = difficultyMode === 0 ? 200 : 400;
 
 
         var urlSearchParams = new URLSearchParams(window.location.search);
