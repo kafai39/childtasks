@@ -194,7 +194,11 @@
             //console.log(tasks.val());
             var childTasks = tasks.val();
             $(childTasks).each(function(){ 
-                if (parseInt(this.Score)>0){
+                var isDisabledTask = false;
+                if (this.Status && this.Status == "Disabled"){
+                  isDisabledTask = true;
+                }
+                if (parseInt(this.Score)>0 && !isDisabledTask){
                 var taskHtml = `<label class="todo">
                               <input class="todo__state" value="`+this.ID+`" data-score="`+this.Score+`" type="checkbox" />
                               <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
