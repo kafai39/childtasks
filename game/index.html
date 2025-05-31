@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katana Fruits</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #1a1a2e, #16213e);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            touch-action: none;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 800px;
+            max-width: 100%;
+            height: 600px;
+            max-height: 100vh;
+        }
+        
+        #game-canvas {
+            background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            cursor: none;
+        }
+        
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
+            color: white;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+        
+        #score {
+            font-weight: bold;
+        }
+        
+        #timer {
+            font-weight: bold;
+        }
+        
+        #lives {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .life {
+            width: 20px;
+            height: 20px;
+            background-color: #ff4757;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        #game-over, #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        #game-over h1, #start-screen h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ff4757;
+            text-shadow: 0 0 10px #ff4757;
+        }
+        
+        #final-score {
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 71, 87, 0.7);
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.9);
+        }
+        
+        #start-screen p {
+            font-size: 18px;
+            max-width: 80%;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas" width="800" height="600"></canvas>
+        <div id="ui-container">
+            <div id="score">Score: 0</div>
+            <div id="timer">Time: 60s</div>
+            <div id="lives">
+                <div class="life"></div>
+                <div class="life"></div>
+                <div class="life"></div>
+            </div>
+        </div>
+        <div id="start-screen">
+            <h1>KATANA FRUITS</h1>
+            <p>Slice the fruits with your katana! Swipe or drag your mouse/finger across the fruits to slice them. Be careful not to miss too many fruits or you'll lose lives!</p>
+            <button id="start-button">START GAME</button>
+        </div>
+        <div id="game-over" style="display: none;">
+            <h1>GAME OVER</h1>
+            <div id="final-score">Score: 0</div>
+            <button id="restart-button">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const timerElement = document.getElementById('timer');
+        const gameOverScreen = document.getElementById('game-over');
+        const startScreen = document.getElementById('start-screen');
+        const finalScoreElement = document.getElementById('final-score');
+        const startButton = document.getElementById('start-button');
+        const restartButton = document.getElementById('restart-button');
+        const livesContainer = document.getElementById('lives');
+
+        let gameActive = false;
+        let score = 0;
+        let timeLeft = 60;
+        let lives = 3;
+        let fruits = [];
+        let slices = [];
+        let lastFrameTime = 0;
+        let mouseTrail = [];
+        let gameTimer;
+
+        // Fruit types with different properties
+		
+		/*
+        const fruitTypes = [
+            { name: 'apple', color: '#ff4757', radius: 30, points: 1, speed: 1 },
+            { name: 'orange', color: '#ffa502', radius: 35, points: 2, speed: 1.2 },
+            { name: 'watermelon', color: '#2ed573', radius: 45, points: 3, speed: 0.8 },
+            { name: 'banana', color: '#fffa65', radius: 25, points: 4, speed: 1.5 },
+            { name: 'bomb', color: '#1e272e', radius: 30, points: -10, speed: 1.3, isBomb: true }
+        ];
+		*/
+		
+        const fruitTypes = [
+            { name: 'apple', color: '#ff4757', radius: 30, points: 1, speed: 0.8 },
+            { name: 'orange', color: '#ffa502', radius: 35, points: 2, speed: 1 },
+            { name: 'watermelon', color: '#2ed573', radius: 35, points: 3, speed: 0.8 },
+            { name: 'banana', color: '#fffa65', radius: 25, points: 4, speed: 1.2 },
+            { name: 'bomb', color: '#1e272e', radius: 30, points: -10, speed: 1.1, isBomb: true }
+        ];
+
+        // Resize canvas to fit container
+        function resizeCanvas() {
+            const container = document.getElementById('game-container');
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            
+            canvas.width = containerWidth;
+            canvas.height = containerHeight;
+            
+            // Redraw if game is active
+            if (gameActive) {
+                draw(performance.now());
+            }
+        }
+
+        // Initialize the game
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Mouse/touch events for slicing
+            canvas.addEventListener('mousedown', startSlice);
+            canvas.addEventListener('mousemove', moveSlice);
+            canvas.addEventListener('mouseup', endSlice);
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
+            canvas.addEventListener('touchend', endSlice);
+            
+            // Start and restart buttons
+            startButton.addEventListener('click', startGame);
+            restartButton.addEventListener('click', startGame);
+        }
+
+        // Start the game
+        function startGame() {
+            gameActive = true;
+            score = 0;
+            timeLeft = 60;
+            lives = 3;
+            fruits = [];
+            slices = [];
+            mouseTrail = [];
+            
+            updateScore();
+            updateLives();
+            
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            
+            // Start game timer
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = `Time: ${timeLeft}s`;
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+            
+            // Start game loop
+            requestAnimationFrame(draw);
+        }
+
+        // End the game
+        function endGame() {
+            gameActive = false;
+            clearInterval(gameTimer);
+            
+            finalScoreElement.textContent = `Score: ${score}`;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreElement.textContent = `Score: ${score}`;
+        }
+
+        // Update lives display
+        function updateLives() {
+            livesContainer.innerHTML = '';
+            for (let i = 0; i < lives; i++) {
+                const lifeElement = document.createElement('div');
+                lifeElement.className = 'life';
+                livesContainer.appendChild(lifeElement);
+            }
+        }
+
+        // Create a new fruit
+        function createFruit() {
+            const fruitType = fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
+            const x = Math.random() * (canvas.width - 100) + 50;
+            const y = canvas.height + fruitType.radius;
+            
+            const speedMultiplier = 1 + (60 - timeLeft) / 120; // Increase speed as time passes
+            
+            const velocityY = -(Math.random() * 5 + 8) * fruitType.speed * speedMultiplier;
+            const velocityX = (Math.random() - 0.5) * 5;
+            
+            fruits.push({
+                x,
+                y,
+                radius: fruitType.radius,
+                color: fruitType.color,
+                velocityX,
+                velocityY,
+                gravity: 0.2,
+                rotation: 0,
+                rotationSpeed: (Math.random() - 0.5) * 0.2,
+                points: fruitType.points,
+                sliced: false,
+                isBomb: fruitType.isBomb || false
+            });
+        }
+
+        // Handle touch events
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            if (e.type === 'touchstart') {
+                startSlice({ clientX: touch.clientX, clientY: touch.clientY });
+            } else if (e.type === 'touchmove') {
+                moveSlice({ clientX: touch.clientX, clientY: touch.clientY });
+            }
+        }
+
+        // Start a slice
+        function startSlice(e) {
+            if (!gameActive) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            mouseTrail = [{ x, y }];
+        }
+
+        // Continue a slice
+        function moveSlice(e) {
+            if (!gameActive || mouseTrail.length === 0) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            mouseTrail.push({ x, y });
+            
+            // Limit trail length
+            if (mouseTrail.length > 10) {
+                mouseTrail.shift();
+            }
+            
+            // Check for fruit slicing
+            checkSlice();
+        }
+
+        // End a slice
+        function endSlice() {
+            mouseTrail = [];
+        }
+
+        // Check if any fruits were sliced
+        function checkSlice() {
+            if (mouseTrail.length < 2) return;
+            
+            const lastPoint = mouseTrail[mouseTrail.length - 1];
+            const prevPoint = mouseTrail[mouseTrail.length - 2];
+            
+            fruits.forEach(fruit => {
+                if (fruit.sliced) return;
+                
+                // Check if line segment intersects with fruit
+                if (lineCircleIntersect(prevPoint.x, prevPoint.y, lastPoint.x, lastPoint.y, 
+                                        fruit.x, fruit.y, fruit.radius)) {
+                    fruit.sliced = true;
+                    
+                    // Create slice effect
+                    slices.push({
+                        x: fruit.x,
+                        y: fruit.y,
+                        color: fruit.color,
+                        radius: fruit.radius,
+                        age: 0
+                    });
+                    
+                    // Update score
+                    if (fruit.isBomb) {
+                        lives--;
+                        updateLives();
+                        
+                        if (lives <= 0) {
+                            endGame();
+                        }
+                    } else {
+                        score += fruit.points;
+                        updateScore();
+                    }
+                }
+            });
+        }
+
+        // Check if a line segment intersects with a circle
+        function lineCircleIntersect(x1, y1, x2, y2, cx, cy, r) {
+            // Calculate the closest point on the line segment to the circle center
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const len = Math.sqrt(dx * dx + dy * dy);
+            
+            // Normalize direction vector
+            const nx = dx / len;
+            const ny = dy / len;
+            
+            // Vector from line start to circle center
+            const vx = cx - x1;
+            const vy = cy - y1;
+            
+            // Project this vector onto the line direction
+            const projection = vx * nx + vy * ny;
+            
+            // Clamp projection to line segment
+            const projectionClamped = Math.max(0, Math.min(len, projection));
+            
+            // Closest point on line to circle center
+            const closestX = x1 + projectionClamped * nx;
+            const closestY = y1 + projectionClamped * ny;
+            
+            // Distance from closest point to circle center
+            const distance = Math.sqrt(
+                (closestX - cx) * (closestX - cx) + 
+                (closestY - cy) * (closestY - cy)
+            );
+            
+            // Check if distance is less than radius
+            return distance <= r;
+        }
+
+        // Main draw function
+        function draw(timestamp) {
+            if (!gameActive) return;
+            
+            // Calculate delta time for smooth animations
+            const deltaTime = timestamp - lastFrameTime;
+            lastFrameTime = timestamp;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Randomly create new fruits
+            if (Math.random() < 0.03) {
+                createFruit();
+            }
+            
+            // Update and draw fruits
+            updateFruits(deltaTime / 16);
+            
+            // Update and draw slices
+            updateSlices(deltaTime / 16);
+            
+            // Draw mouse trail
+            drawMouseTrail();
+            
+            // Continue game loop
+            requestAnimationFrame(draw);
+        }
+
+        // Update and draw fruits
+        function updateFruits(deltaTime) {
+            for (let i = fruits.length - 1; i >= 0; i--) {
+                const fruit = fruits[i];
+                
+                // Update position
+                fruit.x += fruit.velocityX * deltaTime;
+                fruit.y += fruit.velocityY * deltaTime;
+                fruit.velocityY += fruit.gravity * deltaTime;
+                fruit.rotation += fruit.rotationSpeed * deltaTime;
+                
+                // Remove if off screen or sliced
+                if (fruit.y > canvas.height + fruit.radius * 2) {
+                    // If fruit falls off screen without being sliced, lose a life (unless it's a bomb)
+                    if (!fruit.sliced && !fruit.isBomb) {
+                        lives--;
+                        updateLives();
+                        
+                        if (lives <= 0) {
+                            endGame();
+                            return;
+                        }
+                    }
+                    
+                    fruits.splice(i, 1);
+                    continue;
+                }
+                
+                // Draw fruit
+                if (!fruit.sliced) {
+                    ctx.save();
+                    ctx.translate(fruit.x, fruit.y);
+                    ctx.rotate(fruit.rotation);
+                    
+                    // Draw fruit body
+                    ctx.beginPath();
+                    ctx.arc(0, 0, fruit.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = fruit.color;
+                    ctx.fill();
+                    
+                    // Draw highlight
+                    ctx.beginPath();
+                    ctx.arc(-fruit.radius * 0.3, -fruit.radius * 0.3, fruit.radius * 0.4, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.fill();
+                    
+                    // Draw bomb details if it's a bomb
+                    if (fruit.isBomb) {
+                        // Fuse
+                        ctx.beginPath();
+                        ctx.moveTo(0, -fruit.radius);
+                        ctx.quadraticCurveTo(fruit.radius * 0.5, -fruit.radius * 1.5, fruit.radius, -fruit.radius);
+                        ctx.lineWidth = 3;
+                        ctx.strokeStyle = '#7f8c8d';
+                        ctx.stroke();
+                        
+                        // Fuse spark
+                        ctx.beginPath();
+                        ctx.arc(fruit.radius, -fruit.radius, 5, 0, Math.PI * 2);
+                        ctx.fillStyle = '#f39c12';
+                        ctx.fill();
+                    }
+                    
+                    ctx.restore();
+                }
+            }
+        }
+
+        // Update and draw slice effects
+        function updateSlices(deltaTime) {
+            for (let i = slices.length - 1; i >= 0; i--) {
+                const slice = slices[i];
+                slice.age += deltaTime;
+                
+                // Remove old slices
+                if (slice.age > 20) {
+                    slices.splice(i, 1);
+                    continue;
+                }
+                
+                // Draw slice effect
+                const opacity = 1 - slice.age / 20;
+                const scale = 1 + slice.age / 10;
+                
+                ctx.save();
+                ctx.translate(slice.x, slice.y);
+                ctx.scale(scale, scale);
+                
+                // Draw slice
+                ctx.beginPath();
+                ctx.arc(0, 0, slice.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+                ctx.lineWidth = 5;
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+        }
+
+        // Draw mouse trail
+        function drawMouseTrail() {
+            if (mouseTrail.length < 2) return;
+            
+            ctx.beginPath();
+            ctx.moveTo(mouseTrail[0].x, mouseTrail[0].y);
+            
+            for (let i = 1; i < mouseTrail.length; i++) {
+                ctx.lineTo(mouseTrail[i].x, mouseTrail[i].y);
+            }
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.stroke();
+            
+            // Draw blade at the end of trail
+            const lastPoint = mouseTrail[mouseTrail.length - 1];
+            const prevPoint = mouseTrail[mouseTrail.length - 2] || lastPoint;
+            
+            const angle = Math.atan2(lastPoint.y - prevPoint.y, lastPoint.x - prevPoint.x);
+            
+            ctx.save();
+            ctx.translate(lastPoint.x, lastPoint.y);
+            ctx.rotate(angle);
+            
+            // Draw katana handle
+            ctx.beginPath();
+            ctx.rect(-5, -3, 15, 6);
+            ctx.fillStyle = '#8B4513';
+            ctx.fill();
+            
+            // Draw katana blade
+            ctx.beginPath();
+            ctx.moveTo(10, 0);
+            ctx.lineTo(40, -2);
+            ctx.lineTo(40, 2);
+            ctx.closePath();
+            ctx.fillStyle = '#silver';
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        // Initialize the game
+        init();
+    </script>
+</body>
+</html>
