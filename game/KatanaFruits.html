@@ -66,7 +66,9 @@
             height: 20px;
             background-color: #ff4757;
             border-radius: 50%;
-            display: inline-block;
+            /* display: inline-block; */
+			display:none;
+			
         }
         
         #game-over, #start-screen {
@@ -383,7 +385,7 @@
                         updateLives();
                         
                         if (lives <= 0) {
-                            endGame();
+                            //endGame();
                         }
                     } else {
                         score += fruit.points;
