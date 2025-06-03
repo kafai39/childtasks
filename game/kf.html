@@ -384,10 +384,26 @@
                     if (fruit.isBomb) {
                         lives--;
                         updateLives();
+
+			fruits.forEach(f => {
+                            if (!f.sliced) {
+                                f.sliced = true;
+                                // Create slice effect for each cleared fruit
+                                slices.push({
+                                    x: f.x,
+                                    y: f.y,
+                                    color: f.color,
+                                    radius: f.radius,
+                                    age: 0
+                                });
+                            }
+                        });
+			    
                         score += fruit.points;
-						if (score < 0){
-							score = 0;
-						}
+			if (score < 0){
+				score = 0;
+			}
+			    
                         updateScore();
                         
                         if (lives <= 0) {
