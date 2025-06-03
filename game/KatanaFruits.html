@@ -188,7 +188,7 @@
             { name: 'orange', color: '#ffa502', radius: 35, points: 2, speed: 1 },
             { name: 'watermelon', color: '#2ed573', radius: 35, points: 3, speed: 0.8 },
             { name: 'banana', color: '#fffa65', radius: 25, points: 4, speed: 1.2 },
-            { name: 'bomb', color: '#1e272e', radius: 30, points: -10, speed: 1.1, isBomb: true }
+            { name: 'bomb', color: '#1e272e', radius: 30, points: -5, speed: 1.1, isBomb: true }
         ];
 
         // Resize canvas to fit container
@@ -294,6 +294,7 @@
                 y,
                 radius: fruitType.radius,
                 color: fruitType.color,
+                name: fruitType.name, // Add this line
                 velocityX,
                 velocityY,
                 gravity: 0.2,
@@ -383,6 +384,11 @@
                     if (fruit.isBomb) {
                         lives--;
                         updateLives();
+                        score += fruit.points;
+						if (score < 0){
+							score = 0;
+						}
+                        updateScore();
                         
                         if (lives <= 0) {
                             //endGame();
@@ -459,73 +465,272 @@
             requestAnimationFrame(draw);
         }
 
-        // Update and draw fruits
-        function updateFruits(deltaTime) {
-            for (let i = fruits.length - 1; i >= 0; i--) {
-                const fruit = fruits[i];
+        // Draw realistic fruits
+function drawFruit(fruit) {
+    ctx.save();
+    ctx.translate(fruit.x, fruit.y);
+    ctx.rotate(fruit.rotation);
+    
+    const radius = fruit.radius;
+    
+    switch(fruit.name) {
+        case 'apple':
+            drawApple(radius);
+            break;
+        case 'orange':
+            drawOrange(radius);
+            break;
+        case 'watermelon':
+            drawWatermelon(radius);
+            break;
+        case 'banana':
+            drawBanana(radius);
+            break;
+        case 'bomb':
+            drawBomb(radius);
+            break;
+    }
+    
+    ctx.restore();
+}
+
+// Draw realistic apple
+function drawApple(radius) {
+    // Apple body - red gradient
+    const gradient = ctx.createRadialGradient(-radius * 0.3, -radius * 0.3, 0, 0, 0, radius);
+    gradient.addColorStop(0, '#ff6b6b');
+    gradient.addColorStop(0.7, '#ee5a52');
+    gradient.addColorStop(1, '#c44569');
+    
+    ctx.beginPath();
+    ctx.arc(0, radius * 0.1, radius * 0.9, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    
+    // Apple indent at top
+    ctx.beginPath();
+    ctx.ellipse(0, -radius * 0.7, radius * 0.3, radius * 0.2, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#c44569';
+    ctx.fill();
+    
+    // Apple stem
+    ctx.beginPath();
+    ctx.rect(-radius * 0.05, -radius * 0.9, radius * 0.1, radius * 0.3);
+    ctx.fillStyle = '#8B4513';
+    ctx.fill();
+    
+    // Apple leaf
+    ctx.beginPath();
+    ctx.ellipse(radius * 0.2, -radius * 0.8, radius * 0.15, radius * 0.08, Math.PI * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = '#2ed573';
+    ctx.fill();
+    
+    // Highlight
+    ctx.beginPath();
+    ctx.ellipse(-radius * 0.3, -radius * 0.2, radius * 0.25, radius * 0.35, -Math.PI * 0.2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.fill();
+}
+
+// Draw realistic orange
+function drawOrange(radius) {
+    // Orange body - orange gradient
+    const gradient = ctx.createRadialGradient(-radius * 0.3, -radius * 0.3, 0, 0, 0, radius);
+    gradient.addColorStop(0, '#ffa726');
+    gradient.addColorStop(0.7, '#ff9800');
+    gradient.addColorStop(1, '#f57c00');
+    
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    
+    // Orange texture - dimples
+    ctx.fillStyle = 'rgba(245, 124, 0, 0.3)';
+    for (let i = 0; i < 20; i++) {
+        const angle = (i / 20) * Math.PI * 2;
+        const x = Math.cos(angle) * radius * 0.7;
+        const y = Math.sin(angle) * radius * 0.7;
+        ctx.beginPath();
+        ctx.arc(x, y, radius * 0.08, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Orange stem area
+    ctx.beginPath();
+    ctx.arc(0, -radius * 0.9, radius * 0.15, 0, Math.PI * 2);
+    ctx.fillStyle = '#4caf50';
+    ctx.fill();
+    
+    // Highlight
+    ctx.beginPath();
+    ctx.ellipse(-radius * 0.3, -radius * 0.3, radius * 0.3, radius * 0.4, -Math.PI * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.fill();
+}
+
+// Draw realistic watermelon
+function drawWatermelon(radius) {
+    // Watermelon body - green with stripes
+    const gradient = ctx.createRadialGradient(-radius * 0.3, -radius * 0.3, 0, 0, 0, radius);
+    gradient.addColorStop(0, '#4caf50');
+    gradient.addColorStop(0.7, '#388e3c');
+    gradient.addColorStop(1, '#2e7d32');
+    
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    
+    // Dark green stripes
+    ctx.strokeStyle = '#1b5e20';
+    ctx.lineWidth = radius * 0.1;
+    for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const startX = Math.cos(angle) * radius * 0.3;
+        const startY = Math.sin(angle) * radius * 0.3;
+        const endX = Math.cos(angle) * radius * 0.9;
+        const endY = Math.sin(angle) * radius * 0.9;
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+    }
+    
+    // Watermelon stem
+    ctx.beginPath();
+    ctx.arc(0, -radius * 0.8, radius * 0.1, 0, Math.PI * 2);
+    ctx.fillStyle = '#8bc34a';
+    ctx.fill();
+    
+    // Highlight
+    ctx.beginPath();
+    ctx.ellipse(-radius * 0.4, -radius * 0.4, radius * 0.25, radius * 0.35, -Math.PI * 0.4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.fill();
+}
+
+// Draw realistic banana
+function drawBanana(radius) {
+    // Banana body - curved shape
+    ctx.beginPath();
+    ctx.ellipse(0, 0, radius * 1.2, radius * 0.6, Math.PI * 0.2, 0, Math.PI * 2);
+    
+    const gradient = ctx.createLinearGradient(-radius, -radius * 0.5, radius, radius * 0.5);
+    gradient.addColorStop(0, '#ffeb3b');
+    gradient.addColorStop(0.5, '#ffc107');
+    gradient.addColorStop(1, '#ff8f00');
+    
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    
+    // Banana ridges
+    ctx.strokeStyle = '#ff8f00';
+    ctx.lineWidth = 2;
+    for (let i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.ellipse(0, i * radius * 0.2, radius * 1.1, radius * 0.05, Math.PI * 0.2, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    
+    // Banana tips
+    ctx.fillStyle = '#8bc34a';
+    ctx.beginPath();
+    ctx.ellipse(-radius * 0.9, -radius * 0.2, radius * 0.15, radius * 0.1, Math.PI * 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#6d4c41';
+    ctx.beginPath();
+    ctx.ellipse(radius * 0.9, radius * 0.2, radius * 0.1, radius * 0.08, Math.PI * 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Highlight
+    ctx.beginPath();
+    ctx.ellipse(-radius * 0.3, -radius * 0.1, radius * 0.4, radius * 0.15, Math.PI * 0.2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.fill();
+}
+
+// Draw realistic bomb
+function drawBomb(radius) {
+    // Bomb body - black with metallic shine
+    const gradient = ctx.createRadialGradient(-radius * 0.3, -radius * 0.3, 0, 0, 0, radius);
+    gradient.addColorStop(0, '#424242');
+    gradient.addColorStop(0.7, '#212121');
+    gradient.addColorStop(1, '#000000');
+    
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    
+    // Bomb fuse
+    ctx.beginPath();
+    ctx.moveTo(0, -radius);
+    ctx.quadraticCurveTo(radius * 0.5, -radius * 1.5, radius * 0.8, -radius * 1.2);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#795548';
+    ctx.stroke();
+    
+    // Fuse spark
+    ctx.beginPath();
+    ctx.arc(radius * 0.8, -radius * 1.2, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#ff5722';
+    ctx.fill();
+    
+    // Spark particles
+    for (let i = 0; i < 5; i++) {
+        const angle = (i / 5) * Math.PI * 2;
+        const sparkX = radius * 0.8 + Math.cos(angle) * 10;
+        const sparkY = -radius * 1.2 + Math.sin(angle) * 10;
+        ctx.beginPath();
+        ctx.arc(sparkX, sparkY, 2, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffeb3b';
+        ctx.fill();
+    }
+    
+    // Metallic highlight
+    ctx.beginPath();
+    ctx.ellipse(-radius * 0.4, -radius * 0.4, radius * 0.3, radius * 0.5, -Math.PI * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.fill();
+}
+
+// Update and draw fruits
+function updateFruits(deltaTime) {
+    for (let i = fruits.length - 1; i >= 0; i--) {
+        const fruit = fruits[i];
+        
+        // Update position
+        fruit.x += fruit.velocityX * deltaTime;
+        fruit.y += fruit.velocityY * deltaTime;
+        fruit.velocityY += fruit.gravity * deltaTime;
+        fruit.rotation += fruit.rotationSpeed * deltaTime;
+        
+        // Remove if off screen or sliced
+        if (fruit.y > canvas.height + fruit.radius * 2) {
+            // If fruit falls off screen without being sliced, lose a life (unless it's a bomb)
+            if (!fruit.sliced && !fruit.isBomb) {
+                lives--;
+                updateLives();
                 
-                // Update position
-                fruit.x += fruit.velocityX * deltaTime;
-                fruit.y += fruit.velocityY * deltaTime;
-                fruit.velocityY += fruit.gravity * deltaTime;
-                fruit.rotation += fruit.rotationSpeed * deltaTime;
-                
-                // Remove if off screen or sliced
-                if (fruit.y > canvas.height + fruit.radius * 2) {
-                    // If fruit falls off screen without being sliced, lose a life (unless it's a bomb)
-                    if (!fruit.sliced && !fruit.isBomb) {
-                        lives--;
-                        updateLives();
-                        
-                        if (lives <= 0) {
-                            //endGame();
-                            return;
-                        }
-                    }
-                    
-                    fruits.splice(i, 1);
-                    continue;
-                }
-                
-                // Draw fruit
-                if (!fruit.sliced) {
-                    ctx.save();
-                    ctx.translate(fruit.x, fruit.y);
-                    ctx.rotate(fruit.rotation);
-                    
-                    // Draw fruit body
-                    ctx.beginPath();
-                    ctx.arc(0, 0, fruit.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = fruit.color;
-                    ctx.fill();
-                    
-                    // Draw highlight
-                    ctx.beginPath();
-                    ctx.arc(-fruit.radius * 0.3, -fruit.radius * 0.3, fruit.radius * 0.4, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                    ctx.fill();
-                    
-                    // Draw bomb details if it's a bomb
-                    if (fruit.isBomb) {
-                        // Fuse
-                        ctx.beginPath();
-                        ctx.moveTo(0, -fruit.radius);
-                        ctx.quadraticCurveTo(fruit.radius * 0.5, -fruit.radius * 1.5, fruit.radius, -fruit.radius);
-                        ctx.lineWidth = 3;
-                        ctx.strokeStyle = '#7f8c8d';
-                        ctx.stroke();
-                        
-                        // Fuse spark
-                        ctx.beginPath();
-                        ctx.arc(fruit.radius, -fruit.radius, 5, 0, Math.PI * 2);
-                        ctx.fillStyle = '#f39c12';
-                        ctx.fill();
-                    }
-                    
-                    ctx.restore();
+                if (lives <= 0) {
+                    //endGame();
+                    return;
                 }
             }
+            
+            fruits.splice(i, 1);
+            continue;
         }
+        
+        // Draw fruit
+        if (!fruit.sliced) {
+            drawFruit(fruit);
+        }
+    }
+}
 
         // Update and draw slice effects
         function updateSlices(deltaTime) {
