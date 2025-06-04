@@ -229,26 +229,16 @@
 
         // Fruit types with different properties
         const fruitTypes = [
-            { name: 'apple', color: '#ff4757', radius: 30, points: 1, speed: 0.8 },
-            { name: 'orange', color: '#ffa502', radius: 35, points: 2, speed: 1 },
-            { name: 'watermelon', color: '#2ed573', radius: 35, points: 3, speed: 0.8 },
-            { name: 'banana', color: '#fffa65', radius: 30, points: 4, speed: 1.2 },
-            { name: 'bomb', color: '#1e272e', radius: 30, points: -5, speed: 1.1, isBomb: true },
+            { name: 'apple', color: '#ff4757', radius: 30, points: 1, speed: 1 },
+            { name: 'orange', color: '#ffa502', radius: 35, points: 2, speed: 1.2 },
+            { name: 'watermelon', color: '#2ed573', radius: 45, points: 3, speed: 0.8 },
+            { name: 'banana', color: '#fffa65', radius: 25, points: 4, speed: 1.5 },
+            { name: 'bomb', color: '#1e272e', radius: 30, points: -10, speed: 1.3, isBomb: true },
             // Special power-up fruits
             { name: 'slowmo', color: '#9c88ff', radius: 28, points: 5, speed: 1, isPowerUp: true, powerType: 'slowmo' },
             { name: 'bigfruit', color: '#feca57', radius: 32, points: 5, speed: 1, isPowerUp: true, powerType: 'bigfruit' },
             { name: 'multifruit', color: '#ff6b6b', radius: 30, points: 5, speed: 1, isPowerUp: true, powerType: 'multifruit' }
         ];
-        
-        /*
-          const fruitTypes = [
-            { name: 'apple', color: '#ff4757', radius: 30, points: 1, speed: 0.8 },
-            { name: 'orange', color: '#ffa502', radius: 35, points: 2, speed: 1 },
-            { name: 'watermelon', color: '#2ed573', radius: 35, points: 3, speed: 0.8 },
-            { name: 'banana', color: '#fffa65', radius: 25, points: 4, speed: 1.2 },
-            { name: 'bomb', color: '#1e272e', radius: 30, points: -5, speed: 1.1, isBomb: true }
-        ];
-        */
 
         // Resize canvas to fit container
         function resizeCanvas() {
@@ -582,12 +572,6 @@
                         
                         lives--;
                         updateLives();
-
-						score += fruit.points;
-						if (score < 0){
-							score = 0;
-						}
-                        updateScore();
                         
                         if (lives <= 0) {
                             //endGame();
@@ -648,7 +632,7 @@
                     createMultipleFruits();
                 } else {
                     createFruit();
-                }`
+                }
             }
             
             updateFruits(deltaTime / 16);
