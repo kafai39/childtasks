@@ -58,7 +58,7 @@
 .todo__text {
   color: #135156;
   transition: all 0.4s linear 0.4s;
-  font-size: 2em;
+  font-size:1.5em;
 }
 
 .todo__icon {
