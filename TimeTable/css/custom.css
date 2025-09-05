@@ -41,8 +41,7 @@
   padding: 0.5em 0.5em 0.5em 16%;
   margin: 0 auto;
   cursor: pointer;
-  border-bottom: solid 1px #ddd;
-  height: 100px;
+  border-bottom: solid 1px #ddd; 
 }
 
 .todo:last-child {
