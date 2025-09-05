@@ -1,0 +1,57 @@
+[
+  {
+    "Mon": [
+      "人文",
+      "科學",
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "Tue": [
+      "英導修",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "Wed": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "Thu": [
+      "聯課活動",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "Fri": [
+      "中導修 ",
+      "數導修 ",
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  }
+]

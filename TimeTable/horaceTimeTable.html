@@ -1,0 +1,313 @@
+<html>
+
+<head>
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/moment.js"></script>
+    <script>
+
+        var today = new Date();
+        var dayClasses = [];
+        var weekClasses = [];
+        var holidayList = [];
+
+        async function GetData() {
+
+            await fetch('Source/Holiday.json')
+                .then(response => response.json())
+                .then(data => {
+                    //console.log(data);
+                    // Filter out null and empty strings
+                    holidayList = (data.Date || []).filter(d => d && d.trim());
+                    console.log(holidayList);
+                    // You can use dateList as needed
+                });
+
+            await fetch('Source/Days.json')
+                .then(response => response.json())
+                .then(data => {
+                    dayClasses = data;
+                    console.log(dayClasses);
+                });
+
+            await fetch('Source/Week.json')
+                .then(response => response.json())
+                .then(data => {
+                    weekClasses = data;
+                    console.log(weekClasses);
+                });
+        }
+
+        function isWeekend(date) {
+            const day = date.getDay();
+            return day === 0 || day === 6; // Sunday = 0, Saturday = 6
+        }
+
+        function isHoliday(date, holidayList) {
+            // Compare date in 'YYYY-MM-DD' format
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            const dateStr = `${yyyy}-${mm}-${dd}`;
+            return holidayList.includes(dateStr);
+        }
+
+        function CalculateNextDate() {
+
+            let nextDate = new Date(today);
+
+            // Loop until a non-weekend, non-holiday date is found
+            while (true) {
+                nextDate.setDate(nextDate.getDate() + 1);
+                if (!isWeekend(nextDate) && !isHoliday(nextDate, holidayList)) {
+                    break;
+                }
+            }
+
+            return nextDate;
+        }
+
+        function getWeekdayName(date) {
+            const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            return weekdays[date.getDay()];
+        }
+
+        function CalculateTheDayForNextDate(nextDate) {
+            let firstDate = new Date("2025-09-04");
+            var day = 0;
+
+            // Loop until a non-weekend, non-holiday date is found
+            while (firstDate <= nextDate) {
+
+                if (!isWeekend(firstDate) && !isHoliday(firstDate, holidayList)) {
+                    day = day + 1;
+                    if (day > 6) { day = 1; }
+                }
+
+                firstDate.setDate(firstDate.getDate() + 1);
+
+            }
+            return day;
+        }
+
+        window.onload = async function () {
+            await GetData();
+            var nextDate = CalculateNextDate();
+            //nextDate = new Date("2025-11-28"); // For testing purpose only
+            var nextDay = CalculateTheDayForNextDate(nextDate);
+
+
+
+            // Get week day name
+            const weekDayName = getWeekdayName(nextDate);
+
+            var resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = "";
+            // Display result
+            resultDiv.innerHTML = `<h2>Next Class Date: ${nextDate.toISOString().slice(0, 10)}  (${weekDayName})</h2>`;
+            // Display result
+            resultDiv.innerHTML += `<h2>Day: ${nextDay}</h2>`;
+
+            var ClassesDiv = document.getElementById("Classes");
+            ClassesDiv.innerHTML = "";
+
+            var classes = [];
+
+            dayClasses.find(n => n[nextDay])[nextDay].forEach(function (dayClass, index) {
+                if (dayClass != null) {
+                    //ClassesDiv.innerHTML += `<div>${dayClass}</div>`;
+                    if (!classes.includes(dayClass)) {
+                        classes.push(dayClass);
+                    }
+                }
+            });
+
+            weekClasses.find(n => n[weekDayName])[weekDayName].forEach(function (dayClass, index) {
+                if (dayClass != null) {
+                    //ClassesDiv.innerHTML += `<div>${dayClass}</div>`;
+                    if (!classes.includes(dayClass)) {
+                        classes.push(dayClass);
+                    }
+                }
+            });
+
+            classes.forEach(function (dayClass, index) {
+                //ClassesDiv.innerHTML += `<div>${dayClass}</div>`;
+
+                var taskHtml = `<label class="todo">
+                              <input class="todo__state" type="checkbox" value="${dayClass}" />
+                              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="todo__icon">
+                                <use xlink:href="#todo__line" class="todo__line"></use>
+                                <use xlink:href="#todo__box" class="todo__box"></use>
+                                <use xlink:href="#todo__check" class="todo__check"></use>
+                                <use xlink:href="#todo__circle" class="todo__circle"></use>
+                              </svg>
+                              <div class="todo__text">${dayClass}</div>
+                            </label>`;
+                $("#Classes").append(taskHtml);
+
+            });
+
+
+
+        };
+
+
+        function handleDateChange(event) {
+            const selectedDate = event.target.value; // Get the selected date
+
+            nextDate = new Date(selectedDate);
+            var nextDay = CalculateTheDayForNextDate(nextDate);
+            // Get week day name
+            const weekDayName = getWeekdayName(nextDate);
+
+            var resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = "";
+            // Display result
+            resultDiv.innerHTML = `<h2>Next Class Date: ${nextDate.toISOString().slice(0, 10)}  (${weekDayName})</h2>`;
+            // Display result
+            resultDiv.innerHTML += `<h2>Day: ${nextDay}</h2>`;
+
+
+            var ClassesDiv = document.getElementById("Classes");
+            ClassesDiv.innerHTML = "";
+
+            var classes = [];
+
+            dayClasses.find(n => n[nextDay])[nextDay].forEach(function (dayClass, index) {
+                if (dayClass != null) {
+                    //ClassesDiv.innerHTML += `<div>${dayClass}</div>`;
+                    if (!classes.includes(dayClass)) {
+                        classes.push(dayClass);
+                    }
+                }
+            });
+
+            weekClasses.find(n => n[weekDayName])[weekDayName].forEach(function (dayClass, index) {
+                if (dayClass != null) {
+                    //ClassesDiv.innerHTML += `<div>${dayClass}</div>`;
+                    if (!classes.includes(dayClass)) {
+                        classes.push(dayClass);
+                    }
+                }
+            });
+
+            classes.forEach(function (dayClass, index) {
+                ClassesDiv.innerHTML += `<div>${dayClass}</div>`;
+            });
+        }
+
+
+        function confirmDone() {
+            var allChecked = true;
+            $("input[type=checkbox]").each(function () {
+                if (!this.checked) {
+                    /*
+                    // If checked, change to red style
+                    $(this).next("svg").find("use").each(function () {
+                        var originalId = $(this).attr("xlink:href");
+                        var newId = originalId + "_red";
+                        $(this).attr("xlink:href", newId);
+                    });
+                    $(this).next("svg").find(".todo__text").css("color", "red");
+                    */
+                    allChecked = false;
+                }
+            });
+            if (allChecked) {
+                alert("恭喜你，已經執好書包了!");
+            } else {
+                alert("還有沒執的書包喔!");
+            }
+        }
+
+    </script>
+</head>
+
+<body>
+    <!--
+        <input type="date" id="datePicker" onchange="handleDateChange(event)">
+    -->
+    <div id="top-info">
+        <div id="username-info" class="p-2">
+            玹玉執書包小幫手
+        </div>
+    </div>
+    <section class="gradient-custom-2" id="main-body">
+        <div class="container full-width-container">
+            <div class="row d-flex justify-content-center h-100">
+                <div class="col-md-12 col-xl-10">
+
+                    <div class="card mask-custom">
+                        <div class="card-body p-4 text-white">
+
+                            <div id="result">
+                                <!-- Result will be displayed here -->
+                            </div>
+
+                            <svg viewBox="0 0 0 0" style="position: absolute; z-index: -1; opacity: 0;">
+                                <defs>
+                                    <linearGradient id="boxGradient" gradientUnits="userSpaceOnUse" x1="0" y1="0"
+                                        x2="25" y2="25">
+                                        <stop offset="0%" stop-color="#27FDC7" />
+                                        <stop offset="100%" stop-color="#0FC0F5" />
+                                    </linearGradient>
+
+                                    <linearGradient id="lineGradient">
+                                        <stop offset="0%" stop-color="#0FC0F5" />
+                                        <stop offset="100%" stop-color="#27FDC7" />
+                                    </linearGradient>
+
+                                    <path id="todo__line" stroke="url(#lineGradient)" d="M21 12.3h168v0.1z"></path>
+                                    <path id="todo__box" stroke="url(#boxGradient)"
+                                        d="M21 12.7v5c0 1.3-1 2.3-2.3 2.3H8.3C7 20 6 19 6 17.7V7.3C6 6 7 5 8.3 5h10.4C20 5 21 6 21 7.3v5.4">
+                                    </path>
+                                    <path id="todo__check" stroke="url(#boxGradient)" d="M10 13l2 2 5-5"></path>
+                                    <circle id="todo__circle" cx="13.5" cy="12.5" r="10"></circle>
+                                </defs>
+                            </svg>
+
+                            <svg viewBox="0 0 0 0" style="position: absolute; z-index: -1; opacity: 0;">
+                                <defs>
+                                    <linearGradient id="boxGradient_red" gradientUnits="userSpaceOnUse" x1="0" y1="0"
+                                        x2="25" y2="25">
+                                        <stop offset="0%" stop-color="rgb(240, 154, 154)" />
+                                        <stop offset="100%" stop-color="rgb(255, 0, 0)" />
+                                    </linearGradient>
+
+                                    <linearGradient id="lineGradient_red">
+                                        <stop offset="0%" stop-color="rgb(255, 0, 0)" />
+                                        <stop offset="100%" stop-color="rgb(240, 154, 154)" />
+                                    </linearGradient>
+
+                                    <path id="todo__line_red" stroke="url(#lineGradient_red)" d="M21 12.3h168v0.1z">
+                                    </path>
+                                    <path id="todo__box_red" stroke="url(#boxGradient_red)"
+                                        d="M21 12.7v5c0 1.3-1 2.3-2.3 2.3H8.3C7 20 6 19 6 17.7V7.3C6 6 7 5 8.3 5h10.4C20 5 21 6 21 7.3v5.4">
+                                    </path>
+                                    <path id="todo__check_red" stroke="url(#boxGradient_red)" d="M10 13l2 2 5-5"></path>
+                                    <circle id="todo__circle_red" cx="13.5" cy="12.5" r="10"></circle>
+                                </defs>
+                            </svg>
+                            <div id="Classes" class="todo-list">
+
+                            </div>
+
+                            <div class="text-center pt-3">
+                                <button class="btn btn-info btn-lg text-white" id="SubmitButton" type="button"
+                                    onclick="confirmDone()">已執好書包!</button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+
+</html>
